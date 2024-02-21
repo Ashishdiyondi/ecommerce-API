@@ -8,7 +8,6 @@ import Brand from "../model/Brand.js";
 // @access Private/Admin
 export const createProductCtrl = asyncHandler(async (req, res) => {
   const convertedImgs = req.files.map((file) => file.path);
-
   const { name, description, category, sizes, colors, price, totalQty, brand } =
     req.body;
   //   console.log(req.body);
@@ -126,7 +125,7 @@ export const getProductsCtrl = asyncHandler(async (req, res) => {
   // page
   const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
   // limit
-  const limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 1;
+  const limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 10;
   //   startIdx
   const startIndex = (page - 1) * limit;
   // endIdx
@@ -167,7 +166,13 @@ export const getProductsCtrl = asyncHandler(async (req, res) => {
 // @access Public
 export const getProductCtrl = asyncHandler(async (req, res) => {
   //   console.log(req.params);
-  const product = await Product.findById(req.params.id).populate("reviews");
+  const product = await Product.findById(req.params.id).populate({
+    path: "reviews",
+    populate: {
+      path: "user",
+      select: "fullname",
+    },
+  });
   if (!product) {
     throw new Error("Product not found");
   }
@@ -210,6 +215,7 @@ export const updateProductCtrl = asyncHandler(async (req, res) => {
     },
     {
       new: true,
+      runValidators: true,
     }
   );
   res.json({
